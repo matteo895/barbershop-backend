@@ -24,11 +24,12 @@ require __DIR__ . '/auth.php';
 // Rotte per gestire i parrucchieri
 Route::get('/barbers', [BarberController::class, 'index'])->name('barbers.index');
 Route::post('/barbers', [BarberController::class, 'store'])->name('barbers.store');
-Route::put('/barbers/{barber}', [BarberController::class, 'update'])->name('barbers.update');
-Route::delete('/barbers/{barber}', [BarberController::class, 'destroy'])->name('barbers.destroy');
+Route::put('/barbers/{id}', [BarberController::class, 'update']);
+Route::delete('/barbers/{id}', [BarberController::class, 'destroy']);
 
 // Rotte per gestire gli appuntamenti
 Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
+Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
 
 // Rotte per ottenere il token CSRF
 Route::get('/csrf-token', function () {

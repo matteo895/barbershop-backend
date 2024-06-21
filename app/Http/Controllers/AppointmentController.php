@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\Barber;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AppointmentController extends Controller
 {
@@ -14,9 +16,17 @@ class AppointmentController extends Controller
      */
     public function index()
     {
-        // Carica tutti gli appuntamenti con le relazioni utente e parrucchiere
-        $appointments = Appointment::with(['user', 'barber'])->get();
-        return response()->json($appointments);
+        try {
+            // Carica tutti gli appuntamenti con le relazioni utente e parrucchiere
+            $appointments = Appointment::with(['user', 'barber'])->get();
+            return response()->json($appointments);
+        } catch (\Exception $e) {
+            // Log the exception
+            Log::error('Error fetching appointments', ['error' => $e->getMessage()]);
+
+            // Return a JSON error response
+            return response()->json(['error' => 'Errore durante il recupero degli appuntamenti'], 500);
+        }
     }
 
     /**
@@ -27,19 +37,46 @@ class AppointmentController extends Controller
      */
     public function store(Request $request)
     {
-        // Validazione dei dati della richiesta
-        $validatedData = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'barber_id' => 'required|exists:barbers,id',
-            'date' => 'required|date',
-            'time' => 'required|date_format:H:i',
-        ]);
+        try {
+            // Log request data
+            Log::info('Attempting to store appointment', $request->all());
 
-        // Creazione del nuovo appuntamento
-        $appointment = Appointment::create($validatedData);
+            // Validazione dei dati della richiesta
+            $validatedData = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'barber_id' => 'required|exists:barbers,id',
+                'date' => 'required|date',
+                'time' => 'required|date_format:H:i',
+            ]);
 
-        // Ritorna una risposta JSON con il nuovo appuntamento e codice 201 (created)
-        return response()->json($appointment, 201);
+            // Log validated data
+            Log::info('Validated data', $validatedData);
+
+            // Verifica se esiste già un appuntamento per lo stesso parrucchiere, data e ora
+            $existingAppointment = Appointment::where('barber_id', $validatedData['barber_id'])
+                ->where('date', $validatedData['date'])
+                ->where('time', $validatedData['time'])
+                ->first();
+
+            if ($existingAppointment) {
+                return response()->json(['error' => 'Questo orario è già prenotato per questo parrucchiere.'], 409);
+            }
+
+            // Creazione del nuovo appuntamento
+            $appointment = Appointment::create($validatedData);
+
+            // Log created appointment
+            Log::info('Created appointment', $appointment->toArray());
+
+            // Ritorna una risposta JSON con il nuovo appuntamento e codice 201 (created)
+            return response()->json($appointment, 201);
+        } catch (\Exception $e) {
+            // Log the exception
+            Log::error('Error storing appointment', ['error' => $e->getMessage()]);
+
+            // Return a JSON error response
+            return response()->json(['error' => 'Errore durante la prenotazione'], 500);
+        }
     }
 
     /**
@@ -50,8 +87,16 @@ class AppointmentController extends Controller
      */
     public function show(Appointment $appointment)
     {
-        // Ritorna una risposta JSON con i dettagli dell'appuntamento
-        return response()->json($appointment);
+        try {
+            // Ritorna una risposta JSON con i dettagli dell'appuntamento
+            return response()->json($appointment);
+        } catch (\Exception $e) {
+            // Log the exception
+            Log::error('Error fetching appointment details', ['error' => $e->getMessage()]);
+
+            // Return a JSON error response
+            return response()->json(['error' => 'Errore durante il recupero dei dettagli dell\'appuntamento'], 500);
+        }
     }
 
     /**
@@ -63,19 +108,46 @@ class AppointmentController extends Controller
      */
     public function update(Request $request, Appointment $appointment)
     {
-        // Validazione dei dati della richiesta
-        $validatedData = $request->validate([
-            'user_id' => 'sometimes|required|exists:users,id',
-            'barber_id' => 'sometimes|required|exists:barbers,id',
-            'date' => 'sometimes|required|date',
-            'time' => 'sometimes|required|date_format:H:i',
-        ]);
+        try {
+            // Log request data
+            Log::info('Attempting to update appointment', $request->all());
 
-        // Aggiornamento dell'appuntamento con i dati validati
-        $appointment->update($validatedData);
+            // Validazione dei dati della richiesta
+            $validatedData = $request->validate([
+                'user_id' => 'sometimes|required|exists:users,id',
+                'barber_id' => 'sometimes|required|exists:barbers,id',
+                'date' => 'sometimes|required|date',
+                'time' => 'sometimes|required|date_format:H:i',
+            ]);
 
-        // Ritorna una risposta JSON con l'appuntamento aggiornato
-        return response()->json($appointment);
+            // Verifica se esiste già un appuntamento per lo stesso parrucchiere, data e ora
+            if (isset($validatedData['barber_id']) && isset($validatedData['date']) && isset($validatedData['time'])) {
+                $existingAppointment = Appointment::where('barber_id', $validatedData['barber_id'])
+                    ->where('date', $validatedData['date'])
+                    ->where('time', $validatedData['time'])
+                    ->where('id', '!=', $appointment->id)
+                    ->first();
+
+                if ($existingAppointment) {
+                    return response()->json(['error' => 'Questo orario è già prenotato per questo parrucchiere.'], 409);
+                }
+            }
+
+            // Aggiornamento dell'appuntamento con i dati validati
+            $appointment->update($validatedData);
+
+            // Log updated appointment
+            Log::info('Updated appointment', $appointment->toArray());
+
+            // Ritorna una risposta JSON con l'appuntamento aggiornato
+            return response()->json($appointment);
+        } catch (\Exception $e) {
+            // Log the exception
+            Log::error('Error updating appointment', ['error' => $e->getMessage()]);
+
+            // Return a JSON error response
+            return response()->json(['error' => 'Errore durante l\'aggiornamento dell\'appuntamento'], 500);
+        }
     }
 
     /**
@@ -86,10 +158,44 @@ class AppointmentController extends Controller
      */
     public function destroy(Appointment $appointment)
     {
-        // Elimina l'appuntamento dal database
-        $appointment->delete();
+        try {
+            // Log deletion attempt
+            Log::info('Attempting to delete appointment', $appointment->toArray());
 
-        // Ritorna una risposta JSON vuota con codice 204 (no content)
-        return response()->json(null, 204);
+            // Elimina l'appuntamento dal database
+            $appointment->delete();
+
+            // Log successful deletion
+            Log::info('Deleted appointment', ['id' => $appointment->id]);
+
+            // Ritorna una risposta JSON vuota con codice 204 (no content)
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            // Log the exception
+            Log::error('Error deleting appointment', ['error' => $e->getMessage()]);
+
+            // Return a JSON error response
+            return response()->json(['error' => 'Errore durante l\'eliminazione dell\'appuntamento'], 500);
+        }
+    }
+
+    /**
+     * Restituisce la lista dei parrucchieri disponibili.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getBarbers()
+    {
+        try {
+            // Carica tutti i parrucchieri
+            $barbers = Barber::all();
+            return response()->json($barbers);
+        } catch (\Exception $e) {
+            // Log the exception
+            Log::error('Error fetching barbers', ['error' => $e->getMessage()]);
+
+            // Return a JSON error response
+            return response()->json(['error' => 'Errore durante il recupero dei parrucchieri disponibili'], 500);
+        }
     }
 }

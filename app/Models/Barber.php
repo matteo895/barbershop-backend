@@ -9,10 +9,10 @@ class Barber extends Model
 {
     use HasFactory;
 
-    /**
-     * I campi che sono assegnabili in massa.
-     *
-     * @var array
-     */
     protected $fillable = ['name', 'photo', 'description'];
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
 }

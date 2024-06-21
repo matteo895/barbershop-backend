@@ -27,6 +27,6 @@ class CorsMiddleware
             ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
 
             // Aggiunge l'header Access-Control-Allow-Headers per specificare gli header HTTP consentiti
-            ->header('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, X-Token-Auth, Authorization');
+            ->header('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, X-Token-Auth, Authorization, X-CSRF-TOKEN');
     }
 }

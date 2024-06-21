@@ -9,10 +9,15 @@ class Appointment extends Model
 {
     use HasFactory;
 
-    /**
-     * I campi che sono assegnabili in massa.
-     *
-     * @var array
-     */
     protected $fillable = ['user_id', 'barber_id', 'date', 'time'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function barber()
+    {
+        return $this->belongsTo(Barber::class);
+    }
 }
