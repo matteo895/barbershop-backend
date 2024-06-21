@@ -6,6 +6,8 @@ use App\Models\Appointment;
 use App\Models\Barber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+// Importazioni aggiuntive
+use Carbon\Carbon;
 
 class AppointmentController extends Controller
 {
@@ -35,6 +37,9 @@ class AppointmentController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
+
+
+    // Funzione store aggiornata nel Controller
     public function store(Request $request)
     {
         try {
@@ -49,8 +54,31 @@ class AppointmentController extends Controller
                 'time' => 'required|date_format:H:i',
             ]);
 
-            // Log validated data
-            Log::info('Validated data', $validatedData);
+            $date = Carbon::parse($validatedData['date']);
+            $time = Carbon::parse($validatedData['time']);
+
+            // Controlla che la data non sia nel passato
+            if ($date->isPast()) {
+                return response()->json(['error' => 'Non è possibile prenotare per una data passata.'], 422);
+            }
+
+            // Controlla che la data non sia domenica o lunedì
+            if (in_array($date->dayOfWeek, [Carbon::SUNDAY, Carbon::MONDAY])) {
+                return response()->json(['error' => 'Il parrucchiere è chiuso la domenica e il lunedì.'], 422);
+            }
+
+            // Controlla che l'orario sia valido
+            $morningStart = Carbon::createFromTime(8, 30);
+            $morningEnd = Carbon::createFromTime(12, 30);
+            $afternoonStart = Carbon::createFromTime(15, 30);
+            $afternoonEnd = Carbon::createFromTime(19, 30);
+
+            if (
+                !($time->between($morningStart, $morningEnd) ||
+                    $time->between($afternoonStart, $afternoonEnd))
+            ) {
+                return response()->json(['error' => 'L\'orario di prenotazione è fuori dall\'orario di lavoro.'], 422);
+            }
 
             // Verifica se esiste già un appuntamento per lo stesso parrucchiere, data e ora
             $existingAppointment = Appointment::where('barber_id', $validatedData['barber_id'])
@@ -78,6 +106,7 @@ class AppointmentController extends Controller
             return response()->json(['error' => 'Errore durante la prenotazione'], 500);
         }
     }
+
 
     /**
      * Mostra i dettagli di un singolo appuntamento.
