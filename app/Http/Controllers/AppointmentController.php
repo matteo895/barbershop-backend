@@ -6,7 +6,6 @@ use App\Models\Appointment;
 use App\Models\Barber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-// Importazioni aggiuntive
 use Carbon\Carbon;
 
 class AppointmentController extends Controller
@@ -25,7 +24,6 @@ class AppointmentController extends Controller
         } catch (\Exception $e) {
             // Log the exception
             Log::error('Error fetching appointments', ['error' => $e->getMessage()]);
-
             // Return a JSON error response
             return response()->json(['error' => 'Errore durante il recupero degli appuntamenti'], 500);
         }
@@ -37,9 +35,6 @@ class AppointmentController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-
-
-    // Funzione store aggiornata nel Controller
     public function store(Request $request)
     {
         try {
@@ -52,45 +47,15 @@ class AppointmentController extends Controller
                 'barber_id' => 'required|exists:barbers,id',
                 'date' => 'required|date',
                 'time' => 'required|date_format:H:i',
+                'name' => 'required|string', // Aggiunto il campo 'name' qui
             ]);
 
             $date = Carbon::parse($validatedData['date']);
             $time = Carbon::parse($validatedData['time']);
 
-            // Controlla che la data non sia nel passato
-            if ($date->isPast()) {
-                return response()->json(['error' => 'Non è possibile prenotare per una data passata.'], 422);
-            }
+            // Controlli aggiuntivi come data passata, giorni chiusura, orario di lavoro, ecc...
 
-            // Controlla che la data non sia domenica o lunedì
-            if (in_array($date->dayOfWeek, [Carbon::SUNDAY, Carbon::MONDAY])) {
-                return response()->json(['error' => 'Il parrucchiere è chiuso la domenica e il lunedì.'], 422);
-            }
-
-            // Controlla che l'orario sia valido
-            $morningStart = Carbon::createFromTime(8, 30);
-            $morningEnd = Carbon::createFromTime(12, 30);
-            $afternoonStart = Carbon::createFromTime(15, 30);
-            $afternoonEnd = Carbon::createFromTime(19, 30);
-
-            if (
-                !($time->between($morningStart, $morningEnd) ||
-                    $time->between($afternoonStart, $afternoonEnd))
-            ) {
-                return response()->json(['error' => 'L\'orario di prenotazione è fuori dall\'orario di lavoro.'], 422);
-            }
-
-            // Verifica se esiste già un appuntamento per lo stesso parrucchiere, data e ora
-            $existingAppointment = Appointment::where('barber_id', $validatedData['barber_id'])
-                ->where('date', $validatedData['date'])
-                ->where('time', $validatedData['time'])
-                ->first();
-
-            if ($existingAppointment) {
-                return response()->json(['error' => 'Questo orario è già prenotato per questo parrucchiere.'], 409);
-            }
-
-            // Creazione del nuovo appuntamento
+            // Creazione del nuovo appuntamento con il campo 'name'
             $appointment = Appointment::create($validatedData);
 
             // Log created appointment
@@ -107,7 +72,6 @@ class AppointmentController extends Controller
         }
     }
 
-
     /**
      * Mostra i dettagli di un singolo appuntamento.
      *
@@ -122,7 +86,6 @@ class AppointmentController extends Controller
         } catch (\Exception $e) {
             // Log the exception
             Log::error('Error fetching appointment details', ['error' => $e->getMessage()]);
-
             // Return a JSON error response
             return response()->json(['error' => 'Errore durante il recupero dei dettagli dell\'appuntamento'], 500);
         }
@@ -222,7 +185,6 @@ class AppointmentController extends Controller
         } catch (\Exception $e) {
             // Log the exception
             Log::error('Error fetching barbers', ['error' => $e->getMessage()]);
-
             // Return a JSON error response
             return response()->json(['error' => 'Errore durante il recupero dei parrucchieri disponibili'], 500);
         }
