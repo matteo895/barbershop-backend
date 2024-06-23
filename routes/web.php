@@ -30,6 +30,7 @@ Route::delete('/barbers/{id}', [BarberController::class, 'destroy']);
 // Rotte per gestire gli appuntamenti
 Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
 Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']);
 
 // Rotte per ottenere il token CSRF
 Route::get('/csrf-token', function () {
