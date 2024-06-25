@@ -130,23 +130,23 @@ class AppointmentController extends Controller
             ]);
 
             // Verifica se esiste già un appuntamento per lo stesso parrucchiere, data e ora
-            if (isset($validatedData['barber_id']) && isset($validatedData['date']) && isset($validatedData['time'])) {
-                $existingAppointment = Appointment::where('barber_id', $validatedData['barber_id'])
-                    ->where('date', $validatedData['date'])
-                    ->where('time', $validatedData['time'])
-                    ->where('id', '!=', $appointment->id)
-                    ->first();
+            //if (isset($validatedData['barber_id']) && isset($validatedData['date']) && isset($validatedData['time'])) {
+            $existingAppointment = Appointment::where('barber_id', $validatedData['barber_id'])
+                ->where('date', $validatedData['date'])
+                ->where('time', $validatedData['time'])
+                ->where('id', '!=', $appointment->id)
+                ->first();
 
-                if ($existingAppointment) {
-                    Log::info('Conflitto di orario: Questo orario è già prenotato per questo parrucchiere.', [
-                        'barber_id' => $validatedData['barber_id'],
-                        'date' => $validatedData['date'],
-                        'time' => $validatedData['time'],
-                    ]);
+            if ($existingAppointment) {
+                Log::info('Conflitto di orario: Questo orario è già prenotato per questo parrucchiere.', [
+                    'barber_id' => $validatedData['barber_id'],
+                    'date' => $validatedData['date'],
+                    'time' => $validatedData['time'],
+                ]);
 
-                    return response()->json(['error' => 'Questo orario è già prenotato per questo parrucchiere.'], 409);
-                }
+                return response()->json(['error' => 'Questo orario è già prenotato per questo parrucchiere.'], 409);
             }
+            //}
 
             // Aggiornamento dell'appuntamento con i dati validati
             $appointment->update($validatedData);
