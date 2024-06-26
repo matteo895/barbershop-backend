@@ -1,10 +1,11 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BarberController;
 use App\Http\Controllers\AppointmentController;
 
+// Rotte per la homepage e la dashboard rimangono le stesse
 Route::get('/', function () {
     return view('welcome');
 });
@@ -13,12 +14,14 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Rotte per gestire il profilo utente
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Include le rotte di autenticazione generate da Laravel
 require __DIR__ . '/auth.php';
 
 // Rotte per gestire i parrucchieri
@@ -37,3 +40,5 @@ Route::put('/appointments/{appointment}', [AppointmentController::class, 'update
 Route::get('/csrf-token', function () {
     return response()->json(['csrfToken' => csrf_token()]);
 });
+
+Route::view('homepage',)
