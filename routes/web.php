@@ -4,11 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BarberController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\HomePageController;
 
 // Rotte per la homepage e la dashboard rimangono le stesse
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [HomePageController::class, 'index'])->name('homepage.index');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -40,5 +39,3 @@ Route::put('/appointments/{appointment}', [AppointmentController::class, 'update
 Route::get('/csrf-token', function () {
     return response()->json(['csrfToken' => csrf_token()]);
 });
-
-Route::view('homepage',)
