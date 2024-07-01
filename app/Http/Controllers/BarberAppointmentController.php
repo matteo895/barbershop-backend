@@ -8,15 +8,18 @@ use Carbon\Carbon;
 
 class BarberAppointmentController extends Controller
 {
-    public function index($barber_id)
+    public function index($barberId)
     {
-        $today = Carbon::today()->toDateString();
-
-        $appointments = Appointment::where('barber_id', $barber_id)
-            ->whereDate('date', $today)
-            ->orderBy('time')
-            ->with('barber')
-            ->get();
-        return response()->json($appointments);
+        try {
+            $appointments = Appointment::where('barber_id', $barberId)
+                ->orderBy('date')
+                ->orderBy('time')
+                ->with('barber')
+                ->get();
+            return response()->json($appointments);
+        } catch (\Exception $e) {
+            return
+                response()->json(['error' => 'errore nel recupero della prenotazione'], 500);
+        }
     }
 }

@@ -42,4 +42,4 @@ Route::get('/csrf-token', function () {
 });
 
 // Rotta per far visualizzare ai parrucchieri gli appuntamneti
-Route::get('/barbers/{barber_id}/appointments', [BarberAppointmentController::class, 'index']);
+Route::get('/barbers/{id}/appointments', [BarberAppointmentController::class, 'index']);
