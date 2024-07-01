@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BarberController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\HomePageController;
+use App\Http\Controllers\BarberAppointmentController;
 
 // Rotte per la homepage e la dashboard rimangono le stesse
 Route::get('/', [HomePageController::class, 'index'])->name('homepage.index');
@@ -39,3 +40,6 @@ Route::put('/appointments/{appointment}', [AppointmentController::class, 'update
 Route::get('/csrf-token', function () {
     return response()->json(['csrfToken' => csrf_token()]);
 });
+
+// Rotta per far visualizzare ai parrucchieri gli appuntamneti
+Route::get('/barbers/{barber_id}/appointments', [BarberAppointmentController::class, 'index']);

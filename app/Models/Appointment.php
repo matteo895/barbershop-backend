@@ -18,6 +18,6 @@ class Appointment extends Model
 
     public function barber()
     {
-        return $this->belongsTo(Barber::class);
+        return $this->belongsTo(Barber::class, 'barber_id');
     }
 }
